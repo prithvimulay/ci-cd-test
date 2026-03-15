@@ -22,6 +22,12 @@
             margin-bottom: 20px;
         }
 
+        .btn-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         button {
             background-color: #007bff;
             color: white;
@@ -33,8 +39,35 @@
             transition: background-color 0.3s;
         }
 
-        button:hover {
+        button:hover:not(:disabled) {
             background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #a0c4ff;
+            cursor: not-allowed;
+        }
+
+        /* CSS Spinner */
+        .spinner {
+            border: 4px solid #rgba(0, 0, 0, 0.1);
+            border-left-color: #007bff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: none;
+            /* Hidden by default */
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         #result {
@@ -42,6 +75,7 @@
             font-size: 18px;
             font-weight: bold;
             color: #2c3e50;
+            min-height: 24px;
         }
     </style>
 </head>
@@ -49,16 +83,29 @@
 <body>
 
     <h1>Discover Your Current IP Address</h1>
-    <button id="ipBtn">Show my IP</button>
+
+    <div class="btn-container">
+        <button id="ipBtn">Show my IP</button>
+        <div class="spinner" id="loader"></div>
+    </div>
+
     <div id="result"></div>
 
     <script>
         document.getElementById('ipBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('ipBtn');
+            const loader = document.getElementById('loader');
             const resultDiv = document.getElementById('result');
-            resultDiv.innerText = "Fetching...";
+
+            // 1. Enter Loading State
+            btn.disabled = true;
+            btn.innerText = "Fetching...";
+            loader.style.display = "block";
+            resultDiv.innerText = "";
 
             try {
-                const response = await fetch('http://localhost:3000/api/my-ip');
+                // 2. Fetch Data (with 1.5 second artificial delay for visual testing)
+                const response = await fetch('http://localhost:3000/api/my-ip?delay=1500');
                 const data = await response.json();
 
                 if (response.ok) {
@@ -68,6 +115,11 @@
                 }
             } catch (error) {
                 resultDiv.innerText = "Backend is not running!";
+            } finally {
+                // 3. Exit Loading State
+                btn.disabled = false;
+                btn.innerText = "Show my IP";
+                loader.style.display = "none";
             }
         });
     </script>
