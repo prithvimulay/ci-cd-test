@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Finder</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Discover Your Current IP Address</h1>
+    <button id="ipBtn">Show my IP</button>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('ipBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = "Fetching...";
+
+            try {
+                const response = await fetch('http://localhost:3000/api/my-ip');
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerText = `Your IP: ${data.ip}`;
+                } else {
+                    resultDiv.innerText = "Error fetching IP.";
+                }
+            } catch (error) {
+                resultDiv.innerText = "Backend is not running!";
+            }
+        });
+    </script>
+
+</body>
+
+</html>
