@@ -37,8 +37,19 @@ const getCustomerOrders = async (req, res) => {
     }
 };
 
+const deleteOrder = async (req, res) => {
+    try {
+        const orderId = parseInt(req.params.id, 10);
+        await orderService.deleteOrder(orderId);
+        res.status(200).json({ status: 'success', message: 'Order deleted' });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+};
+
 module.exports = {
     createOrder,
     getOrderById,
-    getCustomerOrders
+    getCustomerOrders,
+    deleteOrder
 };

@@ -1,10 +1,11 @@
+require('dotenv').config();
 const app = require('./src/app');
 const prisma = require('./src/lib/prisma');
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, async () => {
-    console.log(`Backend running on http://localhost:${PORT}`);
-    
+    console.log(`Backend running on http://localhost:${PORT}/api/`);
+
     // Check Database connection using Prisma Client
     try {
         await prisma.$connect();
@@ -13,3 +14,4 @@ app.listen(PORT, async () => {
         console.error('Failed to connect to the database:', error);
     }
 });
+console.log('Restarting...');

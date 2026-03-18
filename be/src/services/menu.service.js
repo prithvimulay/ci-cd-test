@@ -20,7 +20,22 @@ const getMenusByKitchenId = async (kitchenId) => {
     });
 };
 
+const updateMenu = async (menuId, menuData) => {
+    return prisma.menu.update({
+        where: { id: menuId },
+        data: menuData
+    });
+};
+
+const deleteMenu = async (menuId) => {
+    return prisma.menu.delete({
+        where: { id: menuId }
+    });
+};
+
 module.exports = {
     addMenuToKitchen,
-    getMenusByKitchenId
+    getMenusByKitchenId,
+    updateMenu,
+    deleteMenu
 };

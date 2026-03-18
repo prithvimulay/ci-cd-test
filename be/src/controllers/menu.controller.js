@@ -25,7 +25,29 @@ const getKitchenMenus = async (req, res) => {
     }
 };
 
+const updateMenu = async (req, res) => {
+    try {
+        const menuId = parseInt(req.params.menuId, 10);
+        const menu = await menuService.updateMenu(menuId, req.body);
+        res.status(200).json({ status: 'success', data: menu });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+};
+
+const deleteMenu = async (req, res) => {
+    try {
+        const menuId = parseInt(req.params.menuId, 10);
+        await menuService.deleteMenu(menuId);
+        res.status(200).json({ status: 'success', message: 'Menu deleted' });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+};
+
 module.exports = {
     addMenuToKitchen,
-    getKitchenMenus
+    getKitchenMenus,
+    updateMenu,
+    deleteMenu
 };

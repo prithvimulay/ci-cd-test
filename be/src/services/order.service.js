@@ -1,21 +1,29 @@
 const prisma = require('../lib/prisma');
 
 const createOrder = async (orderData) => {
-    // 1. Calculations: Calculate the totalAmount by multiplying the quantity of items by their unit prices.
-    // Assuming the user's validator payload contains `totalPrice`, we verify/calculate it against the business rule.
-    // For demo purposes and flat architecture constraints, we construct the parsed string here.
-    const { itemName, quantity, totalPrice, kitchenId, customerId } = orderData;
+    const { itemName, quantity, kitchenId, customerId } = orderData;
     
-    const parsedItemName = `${quantity}x ${itemName}`;
-    
-    // 2. Database Transactions: Ensures atomic operation. 
-    // A single create is atomic, but we wrap it in a transaction to demonstrate the requested logic mechanism.
+    // 2. Database Transactions: Ensures atomic operation.
     return prisma.$transaction(async (tx) => {
-        // Business logic execution inside a transaction
+        // Find the menu item to get its unit price
+        const menu = await tx.menu.findFirst({
+            where: { name: itemName, kitchenId }
+        });
+        
+        if (!menu) {
+            throw new Error(`Menu item '${itemName}' not found in this kitchen`);
+        }
+
+        // 1. Calculations: Calculate the totalAmount by multiplying the quantity by unit price
+        const calculatedPrice = menu.price * quantity;
+        
+        const parsedItemName = `${quantity}x ${itemName}`;
+        
+        // Create the order with the calculated price
         const order = await tx.order.create({
             data: {
                 itemName: parsedItemName,
-                price: totalPrice, // Using validated totalPrice
+                price: calculatedPrice,
                 kitchenId,
                 customerId
             }
@@ -39,8 +47,15 @@ const getOrdersByCustomerId = async (customerId) => {
     });
 };
 
+const deleteOrder = async (orderId) => {
+    return prisma.order.delete({
+        where: { id: orderId }
+    });
+};
+
 module.exports = {
     createOrder,
     getOrderById,
-    getOrdersByCustomerId
+    getOrdersByCustomerId,
+    deleteOrder
 };
