@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node index.js",
     "test:unit": "jest --selectProjects unit",
-    "test:smoke": "jest --selectProjects smoke"
+    "test:smoke": "jest --selectProjects smoke",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
