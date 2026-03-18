@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Basic Management UI</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; gap: 20px; padding: 20px; flex-wrap: wrap; }
+        .panel { border: 1px solid #ccc; padding: 15px; width: 300px; background: #f9f9f9; }
+        h3 { margin-top: 0; }
+        form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        input, button { padding: 6px; }
+        ul { padding-left: 20px; font-size: 14px; }
+        li { margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <!-- KITCHEN PANEL -->
+    <div class="panel">
+        <h3>Kitchens</h3>
+        <form id="kitchen-form">
+            <input type="text" id="k-name" placeholder="Kitchen Name" required />
+            <input type="text" id="k-owner" placeholder="Owner Name" required />
+            <input type="number" id="k-capacity" placeholder="Capacity" required />
+            <button type="submit">Create Kitchen</button>
+        </form>
+        <h4>Existing Kitchens:</h4>
+        <ul id="kitchen-list"></ul>
+    </div>
+
+    <!-- MENUS PANEL -->
+    <div class="panel">
+        <h3>Add Menu to Kitchen</h3>
+        <form id="menu-form">
+            <input type="number" id="m-kitchenId" placeholder="Target Kitchen ID" required />
+            <input type="text" id="m-name" placeholder="Menu Item Name" required />
+            <input type="number" id="m-price" placeholder="Price" step="0.01" required />
+            <button type="submit">Add Menu Item</button>
+        </form>
+    </div>
+
+    <!-- CUSTOMERS PANEL -->
+    <div class="panel">
+        <h3>Customers</h3>
+        <form id="customer-form">
+            <input type="text" id="c-name" placeholder="Customer Name" required />
+            <input type="email" id="c-email" placeholder="Email" required />
+            <input type="text" id="c-phone" placeholder="Phone (10 digits)" required />
+            <button type="submit">Create Customer</button>
+        </form>
+        <h4>Existing Customers:</h4>
+        <ul id="customer-list"></ul>
+    </div>
+
+    <!-- ORDERS PANEL -->
+    <div class="panel">
+        <h3>Place Order</h3>
+        <form id="order-form">
+            <input type="number" id="o-kitchenId" placeholder="Kitchen ID" required />
+            <input type="number" id="o-customerId" placeholder="Customer ID" required />
+            <input type="text" id="o-itemName" placeholder="Item Name (e.g. Burger)" required />
+            <input type="number" id="o-quantity" placeholder="Quantity" required />
+            <input type="number" id="o-price" placeholder="Total Price" step="0.01" required />
+            <button type="submit">Submit Order</button>
+        </form>
+
+        <hr>
+        <h4>Get Customer Orders</h4>
+        <input type="number" id="history-customerId" placeholder="Customer ID" style="width: 100px;"/>
+        <button onclick="fetchHistory()">Fetch History</button>
+        <ul id="history-list"></ul>
+    </div>
+
+    <script>
+        // Update this URL if your app.listen PORT is different
+        const API_URL = 'http://localhost:8000/api';
+
+        // 1. KITCHENS LOGIC
+        async function fetchKitchens() {
+            try {
+                const res = await fetch(`${API_URL}/kitchens`);
+                const data = await res.json();
+                const list = document.getElementById('kitchen-list');
+                list.innerHTML = '';
+                data.data.forEach(k => {
+                    list.innerHTML += `<li>[ID: ${k.id}] ${k.name} (Cap: ${k.capacity})</li>`;
+                });
+            } catch (err) { console.error('Error fetching kitchens:', err); }
+        }
+
+        document.getElementById('kitchen-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('k-name').value,
+                ownerName: document.getElementById('k-owner').value,
+                capacity: parseInt(document.getElementById('k-capacity').value)
+            };
+            await fetch(`${API_URL}/kitchens`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            fetchKitchens(); // Refresh list
+        });
+
+        // 2. MENU LOGIC
+        document.getElementById('menu-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const kId = document.getElementById('m-kitchenId').value;
+            const payload = {
+                name: document.getElementById('m-name').value,
+                price: parseFloat(document.getElementById('m-price').value)
+            };
+            const res = await fetch(`${API_URL}/kitchens/${kId}/menu`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const info = await res.json();
+            alert(info.status === 'success' ? 'Menu Added!' : 'Failed: ' + info.message);
+        });
+
+        // 3. CUSTOMER LOGIC
+        async function fetchCustomers() {
+            try {
+                const res = await fetch(`${API_URL}/customers`);
+                const data = await res.json();
+                const list = document.getElementById('customer-list');
+                list.innerHTML = '';
+                data.data.forEach(c => {
+                    list.innerHTML += `<li>[ID: ${c.id}] ${c.name} - ${c.email}</li>`;
+                });
+            } catch (err) { console.error('Error fetching customers:', err); }
+        }
+
+        document.getElementById('customer-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('c-name').value,
+                email: document.getElementById('c-email').value,
+                phone: document.getElementById('c-phone').value
+            };
+            await fetch(`${API_URL}/customers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            fetchCustomers();
+        });
+
+        // 4. ORDER LOGIC
+        document.getElementById('order-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                kitchenId: parseInt(document.getElementById('o-kitchenId').value),
+                customerId: parseInt(document.getElementById('o-customerId').value),
+                itemName: document.getElementById('o-itemName').value,
+                quantity: parseInt(document.getElementById('o-quantity').value),
+                totalPrice: parseFloat(document.getElementById('o-price').value)
+            };
+            const res = await fetch(`${API_URL}/orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const info = await res.json();
+            alert(info.status === 'success' ? 'Order Placed!' : 'Failed: ' + JSON.stringify(info.errors || info.message));
+        });
+
+        async function fetchHistory() {
+            const cId = document.getElementById('history-customerId').value;
+            if(!cId) return;
+            const res = await fetch(`${API_URL}/customers/${cId}/orders`);
+            const data = await res.json();
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            if(data.data && data.data.length > 0) {
+                data.data.forEach(o => {
+                    list.innerHTML += `<li>Order ID: ${o.id} | ${o.itemName} - $${o.price} (From: ${o.kitchen.name})</li>`;
+                });
+            } else {
+                list.innerHTML = `<li>No orders found.</li>`;
+            }
+        }
+
+        // Initialize display
+        fetchKitchens();
+        fetchCustomers();
+    </script>
+</body>
+</html>

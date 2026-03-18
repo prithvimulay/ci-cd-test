@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// The Models
+
+model Kitchen {
+  id        Int      @id @default(autoincrement())
+  name      String
+  ownerName String
+  capacity  Int
+
+  menus     Menu[]
+  orders    Order[]  // One-to-Many relation setup
+}
+
+model Customer {
+  id      Int      @id @default(autoincrement())
+  name    String
+  email   String   @unique
+  phone   String?
+  orders  Order[]  // One-to-Many relation setup
+}
+
+model Menu {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Float
+
+  kitchenId Int
+
+  kitchen   Kitchen @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id         Int      @id @default(autoincrement())
+  itemName   String   
+  price      Float    
+  
+  // Foreign Keys
+  kitchenId  Int
+  customerId Int
+  createdAt  DateTime @default(now())
+
+  // The Relations (Note the onDelete: Cascade)
+  kitchen    Kitchen  @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
