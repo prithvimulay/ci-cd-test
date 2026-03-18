@@ -1,6 +1,6 @@
 const { Pool } = require('pg');
 const { PrismaPg } = require('@prisma/adapter-pg');
-const { PrismaClient } = require('../generated/prisma');
+const { PrismaClient } = require('../generated/prisma/index.js');
 
 // Prevent multiple instances of Prisma Client in development
 const globalForPrisma = global;
